@@ -20,13 +20,19 @@ export function ListingCard({ listing, isFavorite, onToggleFavorite }: Props) {
       className="group block bg-coffee-surface rounded-2xl overflow-hidden shadow-[0_4px_14px_rgba(30,50,80,0.07)] hover:shadow-[0_8px_24px_rgba(30,50,80,0.12)] transition-shadow"
     >
       <div className="relative aspect-video bg-coffee-blue-light overflow-hidden">
+        {listing.is_coffee_one_seller && (
+          <div className="absolute top-0 left-0 right-0 z-10 bg-coffee-blue text-white text-[11px] font-bold text-center py-1">
+            ☕ Продавець Coffee One
+          </div>
+        )}
+
         {photo ? (
           <img src={photo} alt={listing.title} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-5xl">☕</div>
         )}
 
-        <div className="absolute top-2 left-2 flex gap-1.5">
+        <div className={`absolute left-2 flex gap-1.5 ${listing.is_coffee_one_seller ? 'top-8' : 'top-2'}`}>
           {listing.is_top && (
             <span className="text-[11px] font-bold px-2 py-1 rounded-lg bg-coffee-amber text-white">★ ТОП</span>
           )}

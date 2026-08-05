@@ -32,6 +32,7 @@ export type Listing = {
   photos: string[];
   is_top: boolean;
   is_verified: boolean;
+  is_coffee_one_seller: boolean;
   status: string;
   sold_reason: 'marketplace' | 'other' | null;
   views: number;

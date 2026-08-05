@@ -54,6 +54,11 @@ export default function ListingDetailPage() {
       {/* Photos */}
       <div>
         <div className="relative aspect-video bg-coffee-blue-light rounded-2xl overflow-hidden">
+          {listing.is_coffee_one_seller && (
+            <div className="absolute top-0 left-0 right-0 z-10 bg-coffee-blue text-white text-xs font-bold text-center py-1.5">
+              ☕ Продавець Coffee One
+            </div>
+          )}
           {photos.length > 0 ? (
             <img src={photos[activePhoto]} alt={listing.title} className="w-full h-full object-cover" />
           ) : (

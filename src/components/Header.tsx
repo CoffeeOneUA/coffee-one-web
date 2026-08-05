@@ -42,9 +42,6 @@ export function Header() {
         </div>
 
         <nav className="hidden sm:flex items-center justify-end gap-1.5">
-          <NavLink to="/" end className={navLinkClass}>
-            Маркетплейс
-          </NavLink>
           <Link
             to="/add-listing"
             className="px-3 sm:px-4 py-2 rounded-lg text-sm font-bold text-white bg-coffee-blue hover:bg-coffee-blue-dark transition-colors"

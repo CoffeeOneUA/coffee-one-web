@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useListings, type ListingFilters } from '../hooks/useListings';
 import { useFavorites } from '../hooks/useFavorites';
 import { useCity } from '../contexts/CityContext';
+import { useSiteSettings } from '../hooks/useSiteSettings';
 import { ListingCard } from '../components/ListingCard';
 import { FilterPanel } from '../components/FilterPanel';
 
@@ -18,6 +19,7 @@ export default function MarketplacePage() {
   const { city } = useCity();
   const { listings, loading, error } = useListings({ ...filters, search, city });
   const { listingIds: favoriteIds, toggleListingFavorite } = useFavorites();
+  const { hero_title, hero_subtitle } = useSiteSettings();
 
   const activeFilterCount =
     (filters.category ? 1 : 0) +
@@ -29,8 +31,8 @@ export default function MarketplacePage() {
   return (
     <div>
       <div className="mb-5">
-        <h1 className="text-2xl font-extrabold text-coffee-dark tracking-tight">Маркетплейс</h1>
-        <p className="text-coffee-muted text-sm mt-1">Кавове обладнання від перевірених продавців по всій Україні</p>
+        <h1 className="text-2xl font-extrabold text-coffee-dark tracking-tight">{hero_title}</h1>
+        <p className="text-coffee-muted text-sm mt-1">{hero_subtitle}</p>
       </div>
 
       <div className="flex gap-2 mb-5">
