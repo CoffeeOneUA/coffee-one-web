@@ -45,14 +45,14 @@ export function Header() {
           <NavLink to="/" end className={navLinkClass}>
             Маркетплейс
           </NavLink>
+          <Link
+            to="/add-listing"
+            className="px-3 sm:px-4 py-2 rounded-lg text-sm font-bold text-white bg-coffee-blue hover:bg-coffee-blue-dark transition-colors"
+          >
+            +<span className="hidden sm:inline"> Додати оголошення</span>
+          </Link>
           {isAuthenticated && (
             <>
-              <Link
-                to="/add-listing"
-                className="px-3 sm:px-4 py-2 rounded-lg text-sm font-bold text-white bg-coffee-blue hover:bg-coffee-blue-dark transition-colors"
-              >
-                +<span className="hidden sm:inline"> Додати оголошення</span>
-              </Link>
               <NavLink to="/favorites" className={navLinkClass}>
                 Обране
               </NavLink>
@@ -87,33 +87,32 @@ export function Header() {
           )}
         </nav>
 
-        <button
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label="Меню"
-          aria-expanded={menuOpen}
-          className="sm:hidden relative w-10 h-10 rounded-lg flex items-center justify-center text-coffee-dark hover:bg-coffee-chip transition-colors shrink-0"
-        >
-          <span className="text-xl leading-none">{menuOpen ? '✕' : '☰'}</span>
-          {!menuOpen && unreadTotal > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-coffee-red" />
-          )}
-        </button>
+        <div className="sm:hidden flex items-center gap-1.5 shrink-0">
+          <Link
+            to="/add-listing"
+            aria-label="Додати оголошення"
+            className="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold text-white bg-coffee-blue hover:bg-coffee-blue-dark transition-colors"
+          >
+            +
+          </Link>
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="Меню"
+            aria-expanded={menuOpen}
+            className="relative w-10 h-10 rounded-lg flex items-center justify-center text-coffee-dark hover:bg-coffee-chip transition-colors"
+          >
+            <span className="text-xl leading-none">{menuOpen ? '✕' : '☰'}</span>
+            {!menuOpen && unreadTotal > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-coffee-red" />
+            )}
+          </button>
+        </div>
       </div>
 
       {menuOpen && (
         <nav className="sm:hidden border-t border-coffee-line bg-coffee-surface px-4 py-3 flex flex-col gap-1">
-          <NavLink to="/" end className={navLinkClass} onClick={closeMenu}>
-            Маркетплейс
-          </NavLink>
           {isAuthenticated && (
             <>
-              <Link
-                to="/add-listing"
-                onClick={closeMenu}
-                className="px-3 py-2.5 rounded-lg text-sm font-bold text-white bg-coffee-blue hover:bg-coffee-blue-dark transition-colors text-center"
-              >
-                + Додати оголошення
-              </Link>
               <NavLink to="/favorites" className={navLinkClass} onClick={closeMenu}>
                 Обране
               </NavLink>
