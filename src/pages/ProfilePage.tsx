@@ -54,9 +54,14 @@ export default function ProfilePage() {
 
   if (loading) return <div className="text-center py-16 text-coffee-muted">Завантаження…</div>;
 
+  const total = listings.length;
+  const activeCount = listings.filter((l) => l.status === 'approved').length;
+  const pendingCount = listings.filter((l) => l.status === 'pending').length;
+  const soldCount = listings.filter((l) => l.status === 'sold').length;
+
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="bg-coffee-surface rounded-2xl p-6 flex items-center gap-4 mb-6">
+      <div className="bg-coffee-surface rounded-2xl p-6 flex items-center gap-4 mb-4">
         <div className="w-16 h-16 rounded-full bg-coffee-blue text-white flex items-center justify-center font-extrabold text-2xl shrink-0">
           {profile?.full_name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? 'U'}
         </div>
@@ -70,7 +75,34 @@ export default function ProfilePage() {
         </button>
       </div>
 
-      <div className="font-extrabold text-coffee-dark mb-3">Мої оголошення</div>
+      <div className="bg-coffee-surface rounded-2xl p-4 flex items-stretch justify-between mb-6">
+        <div className="flex-1 text-center">
+          <div className="text-xl font-extrabold text-coffee-dark">{total}</div>
+          <div className="text-[11px] text-coffee-muted font-semibold mt-0.5">Оголошень</div>
+        </div>
+        <div className="w-px bg-coffee-line" />
+        <div className="flex-1 text-center">
+          <div className="text-xl font-extrabold text-coffee-green">{activeCount}</div>
+          <div className="text-[11px] text-coffee-muted font-semibold mt-0.5">Активних</div>
+        </div>
+        <div className="w-px bg-coffee-line" />
+        <div className="flex-1 text-center">
+          <div className="text-xl font-extrabold text-coffee-amber">{pendingCount}</div>
+          <div className="text-[11px] text-coffee-muted font-semibold mt-0.5">На модерації</div>
+        </div>
+        <div className="w-px bg-coffee-line" />
+        <div className="flex-1 text-center">
+          <div className="text-xl font-extrabold text-coffee-muted">{soldCount}</div>
+          <div className="text-[11px] text-coffee-muted font-semibold mt-0.5">Продано</div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mb-3">
+        <div className="font-extrabold text-coffee-dark">Мої оголошення</div>
+        <Link to="/add-listing" className="text-coffee-blue font-bold text-sm">
+          + Додати оголошення
+        </Link>
+      </div>
 
       {listings.length === 0 ? (
         <div className="bg-coffee-surface rounded-2xl p-10 text-center text-coffee-muted text-sm">
@@ -91,6 +123,9 @@ export default function ProfilePage() {
                 <div className="text-coffee-dark font-extrabold mt-1">{Number(l.price_uah).toLocaleString('uk-UA')} ₴</div>
                 {l.status !== 'sold' && (
                   <div className="flex gap-2 mt-3">
+                    <Link to={`/add-listing/${l.id}`} className="flex-1 text-center bg-coffee-blue-light text-coffee-blue-dark text-xs font-semibold rounded-lg py-2">
+                      ✏️ Редагувати
+                    </Link>
                     <button onClick={() => markSold(l.id, 'marketplace')} className="flex-1 bg-coffee-chip text-coffee-dark text-xs font-semibold rounded-lg py-2">
                       Продано на маркетплейсі
                     </button>

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { getFunctionErrorMessage } from '../lib/functionError';
 import { useAuth } from '../contexts/AuthContext';
@@ -44,7 +44,7 @@ interface SubStatus {
   listingsUsed?: number;
   listingsRemaining?: number;
 }
-interface PhotoItem { file: File; previewUrl: string; uploadedUrl: string | null; uploading: boolean }
+interface PhotoItem { file: File | null; previewUrl: string; uploadedUrl: string | null; uploading: boolean }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -61,7 +61,10 @@ const inputClass = 'w-full bg-coffee-surface border-2 border-coffee-line rounded
 export default function AddListingPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { id: editListingId } = useParams<{ id: string }>();
 
+  const [editLoaded, setEditLoaded] = useState(!editListingId);
+  const skipModelResetRef = useRef(false);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [brands, setBrands] = useState<BrandOption[]>([]);
   const [brandCategoryIds, setBrandCategoryIds] = useState<Record<string, Set<string>>>({});
@@ -139,10 +142,44 @@ export default function AddListingPage() {
   }, []);
 
   useEffect(() => {
+    if (!editLoaded) return;
     if (brand && !visibleBrands.some((b) => b.id === brand)) setBrand('');
-  }, [category]);
+  }, [category, editLoaded]);
 
   useEffect(() => {
+    if (!editListingId || categories.length === 0 || brands.length === 0) return;
+    (async () => {
+      const { data } = await supabase.from('listings').select('*').eq('id', editListingId).single();
+      if (!data) {
+        alert('Не вдалося завантажити оголошення');
+        navigate('/profile');
+        return;
+      }
+      const brandName = brands.find((b) => b.id === data.brand_id)?.name ?? '';
+      const modelFromTitle = data.title.startsWith(brandName) ? data.title.slice(brandName.length).trim() : data.title;
+      skipModelResetRef.current = true;
+      setCategory(data.category_id ?? '');
+      setBrand(data.brand_id ?? '');
+      setModel(modelFromTitle);
+      setCustomModel(true);
+      setCondition(data.condition ?? 'used');
+      setGroups(data.groups != null ? String(data.groups) : '2');
+      setYear(data.year != null ? String(data.year) : '');
+      setPriceUah(data.price_uah != null ? String(Math.round(Number(data.price_uah))) : '');
+      setSafePayment(!!data.safe_payment_enabled);
+      setCity(data.city ?? '');
+      setDescription(data.description ?? '');
+      const existingPhotos: string[] = data.photos ?? [];
+      setPhotos(existingPhotos.map((url) => ({ file: null, previewUrl: url, uploadedUrl: url, uploading: false })));
+      setEditLoaded(true);
+    })();
+  }, [editListingId, categories.length, brands.length]);
+
+  useEffect(() => {
+    if (skipModelResetRef.current) {
+      skipModelResetRef.current = false;
+      return;
+    }
     setModel('');
     setCustomModel(false);
   }, [brand]);
@@ -205,7 +242,7 @@ export default function AddListingPage() {
     if (needsContactInfo && (!contactName.trim() || !contactPhone.trim())) {
       return alert("Заповніть ім'я та телефон, щоб покупці могли з вами зв'язатись");
     }
-    if (paymentAmount > 0 && !selectedGateway) {
+    if (!editListingId && paymentAmount > 0 && !selectedGateway) {
       return alert('Наразі жоден спосіб оплати не увімкнений. Спробуйте пізніше.');
     }
 
@@ -223,6 +260,24 @@ export default function AddListingPage() {
       photos: photos.map((p) => p.uploadedUrl).filter(Boolean),
       safe_payment_enabled: safePayment,
     };
+
+    if (editListingId) {
+      try {
+        setLoading(true);
+        if (needsContactInfo) {
+          await supabase.from('profiles').upsert({ id: user.id, full_name: contactName.trim(), phone: contactPhone.trim() });
+        }
+        const { error } = await supabase.from('listings').update(listingDraft).eq('id', editListingId);
+        if (error) throw error;
+        alert('Зміни в оголошенні збережено.');
+        navigate('/profile');
+      } catch (e: any) {
+        alert(e.message ?? 'Сталася помилка');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     try {
       setLoading(true);
@@ -303,10 +358,10 @@ export default function AddListingPage() {
 
   return (
     <div className="max-w-2xl mx-auto pb-16">
-      <h1 className="text-2xl font-extrabold text-coffee-dark tracking-tight mb-1">Нове оголошення</h1>
-      <p className="text-coffee-muted text-sm mb-5">Розмістіть обладнання на маркетплейсі Coffee One</p>
+      <h1 className="text-2xl font-extrabold text-coffee-dark tracking-tight mb-1">{editListingId ? 'Редагувати оголошення' : 'Нове оголошення'}</h1>
+      <p className="text-coffee-muted text-sm mb-5">{editListingId ? 'Внесіть зміни та збережіть' : 'Розмістіть обладнання на маркетплейсі Coffee One'}</p>
 
-      {subBanner && <div className={`rounded-xl px-4 py-3 text-sm font-semibold mb-5 ${subBanner.className}`}>{subBanner.text}</div>}
+      {!editListingId && subBanner && <div className={`rounded-xl px-4 py-3 text-sm font-semibold mb-5 ${subBanner.className}`}>{subBanner.text}</div>}
 
       <div className="flex flex-col gap-5">
         <Field label={`Фото (${photos.length}/8)`}>
@@ -478,7 +533,7 @@ export default function AddListingPage() {
           </div>
         )}
 
-        {paymentAmount > 0 && availableGateways != null && availableGateways.length > 1 && (
+        {!editListingId && paymentAmount > 0 && availableGateways != null && availableGateways.length > 1 && (
           <Field label="Спосіб оплати">
             <div className="grid gap-1.5 bg-coffee-surface border-2 border-coffee-line rounded-xl p-1" style={{ gridTemplateColumns: `repeat(${availableGateways.length}, 1fr)` }}>
               {availableGateways.map((gw) => (
@@ -489,23 +544,31 @@ export default function AddListingPage() {
             </div>
           </Field>
         )}
-        {paymentAmount > 0 && availableGateways != null && availableGateways.length === 0 && (
+        {!editListingId && paymentAmount > 0 && availableGateways != null && availableGateways.length === 0 && (
           <p className="text-sm text-coffee-red text-center font-semibold">Наразі оплата тимчасово недоступна — жоден спосіб оплати не увімкнений.</p>
         )}
 
         <button
           onClick={handlePublish}
-          disabled={loading || (paymentAmount > 0 && !selectedGateway)}
+          disabled={loading || (!editListingId && paymentAmount > 0 && !selectedGateway)}
           className="bg-coffee-blue text-white font-bold rounded-xl py-4 hover:bg-coffee-blue-dark transition-colors disabled:opacity-60"
         >
           {loading
-            ? { opening: 'Секунду…', waiting: 'Очікуємо підтвердження оплати…', creating: 'Публікуємо…', idle: '' }[stage]
-            : paymentAmount > 0
-              ? `Оплатити ${paymentAmount} ₴ і опублікувати`
-              : 'Опублікувати безкоштовно'}
+            ? editListingId
+              ? 'Зберігаємо…'
+              : { opening: 'Секунду…', waiting: 'Очікуємо підтвердження оплати…', creating: 'Публікуємо…', idle: '' }[stage]
+            : editListingId
+              ? 'Зберегти зміни'
+              : paymentAmount > 0
+                ? `Оплатити ${paymentAmount} ₴ і опублікувати`
+                : 'Опублікувати безкоштовно'}
         </button>
         <p className="text-center text-xs text-coffee-muted -mt-2">
-          {paymentAmount > 0 ? "Після оплати оголошення пройде модерацію і з'явиться на маркетплейсі." : "Це оголошення входить у вашу активну підписку. Після публікації воно пройде модерацію."}
+          {editListingId
+            ? 'Зміни зберігаються одразу, без повторної оплати чи модерації.'
+            : paymentAmount > 0
+              ? "Після оплати оголошення пройде модерацію і з'явиться на маркетплейсі."
+              : "Це оголошення входить у вашу активну підписку. Після публікації воно пройде модерацію."}
         </p>
       </div>
 

@@ -38,6 +38,7 @@ export default function App() {
               <Route path="/chats/:id" element={<RequireAuth><ChatPage /></RequireAuth>} />
               <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
               <Route path="/add-listing" element={<RequireAuth><AddListingPage /></RequireAuth>} />
+              <Route path="/add-listing/:id" element={<RequireAuth><AddListingPage /></RequireAuth>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Layout>
