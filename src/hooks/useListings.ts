@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase, type Listing } from '../lib/supabase';
 
+// Спеціальне значення міста оголошення/фільтра — "доступно по всій країні".
+export const ALL_UKRAINE = 'Вся Україна';
+
 export interface ListingFilters {
   category?: string;
   brand?: string;
@@ -34,7 +37,12 @@ export function useListings(filters: ListingFilters) {
 
     if (filters.category) query = query.eq('categories.slug', filters.category);
     if (filters.brand) query = query.eq('brands.slug', filters.brand);
-    if (filters.city) query = query.eq('city', filters.city);
+    // "Вся Україна" як фільтр покупця = без обмеження по місту (видно все).
+    // Обране конкретне місто — показуємо і локальні оголошення, і ті, що
+    // продавець позначив як доступні по всій Україні.
+    if (filters.city && filters.city !== ALL_UKRAINE) {
+      query = query.or(`city.eq."${filters.city}",city.eq."${ALL_UKRAINE}"`);
+    }
     if (filters.condition && filters.condition.length > 0) query = query.in('condition', filters.condition);
     if (filters.groups && filters.groups.length > 0) query = query.in('groups', filters.groups.map(Number));
     if (filters.priceMin != null) query = query.gte('price_uah', filters.priceMin);
