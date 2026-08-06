@@ -222,17 +222,17 @@ export default function ListingDetailPage() {
 
         {!isOwner && (
           <div className="flex flex-col gap-2.5 mt-4">
-            {listing.safe_payment_enabled && (
-              <button
-                onClick={() => {
-                  if (!isAuthenticated) { navigate('/login'); return; }
-                  setSafeDeliveryOpen(true);
-                }}
-                className="w-full bg-coffee-dark text-white font-extrabold rounded-xl py-3.5 hover:opacity-90 transition-opacity"
-              >
-                🚚 Купити з безпечною доставкою
-              </button>
-            )}
+            {/* Безпечна доставка не потребує згоди продавця — покупець вмикає
+                й оплачує її самостійно, доступна на будь-якому оголошенні. */}
+            <button
+              onClick={() => {
+                if (!isAuthenticated) { navigate('/login'); return; }
+                setSafeDeliveryOpen(true);
+              }}
+              className="w-full bg-coffee-dark text-white font-extrabold rounded-xl py-3.5 hover:opacity-90 transition-opacity"
+            >
+              🚚 Купити з безпечною доставкою
+            </button>
             <div className="flex flex-col sm:flex-row gap-2.5">
               <button
                 onClick={() => goToChat(false)}
@@ -242,7 +242,10 @@ export default function ListingDetailPage() {
                 💬 Написати
               </button>
               <button
-                onClick={() => setOfferOpen(true)}
+                onClick={() => {
+                  if (!isAuthenticated) { navigate('/login'); return; }
+                  setOfferOpen(true);
+                }}
                 disabled={contacting}
                 className="flex-1 border-2 border-coffee-blue text-coffee-blue font-bold rounded-xl py-3 hover:bg-coffee-blue-light transition-colors disabled:opacity-50"
               >
