@@ -76,7 +76,7 @@ export function useListing(id: string | undefined) {
     if (!id) return;
     supabase
       .from('listings')
-      .select('*, brands(name), categories(name, emoji), profiles(full_name, city, rating, reviews_count)')
+      .select('*, brands(name), categories(name, emoji), profiles(full_name, phone, city, rating, reviews_count)')
       .eq('id', id)
       .single()
       .then(({ data }) => {

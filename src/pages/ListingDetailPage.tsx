@@ -218,6 +218,15 @@ export default function ListingDetailPage() {
             <div className="font-bold text-coffee-dark">{isOwner ? 'Це ваше оголошення' : listing.profiles?.full_name ?? 'Продавець'}</div>
             <div className="mt-0.5"><StarRating rating={listing.profiles?.rating} reviewsCount={listing.profiles?.reviews_count} /></div>
           </div>
+          {!isOwner && listing.profiles?.phone && (
+            <a
+              href={`tel:${listing.profiles.phone}`}
+              title="Зателефонувати"
+              className="w-11 h-11 rounded-full bg-coffee-blue text-white flex items-center justify-center text-lg shrink-0 hover:bg-coffee-blue-dark transition-colors"
+            >
+              📞
+            </a>
+          )}
         </div>
 
         {!isOwner && (
