@@ -1,10 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useListing } from '../hooks/useListings';
 import { useFavorites } from '../hooks/useFavorites';
 import { useAuth } from '../contexts/AuthContext';
 import { getOrCreateConversation } from '../hooks/useConversations';
+import { getFunctionErrorMessage } from '../lib/functionError';
+import { supabase } from '../lib/supabase';
 import { StarRating } from '../components/StarRating';
+
+const PAYMENT_POLL_INTERVAL_MS = 2500;
+const PAYMENT_POLL_MAX_ATTEMPTS = 48; // ~2 хв
+
+const GATEWAY_LABEL: Record<string, string> = { wayforpay: 'WayForPay', monobank: 'Monobank' };
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Kyiv' });
@@ -20,6 +31,81 @@ export default function ListingDetailPage() {
   const [contacting, setContacting] = useState(false);
   const [offerAmount, setOfferAmount] = useState('');
   const [offerOpen, setOfferOpen] = useState(false);
+
+  const [safeDeliveryOpen, setSafeDeliveryOpen] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
+  const [availableGateways, setAvailableGateways] = useState<string[] | null>(null);
+  const [selectedGateway, setSelectedGateway] = useState<string | null>(null);
+  const [purchaseStage, setPurchaseStage] = useState<'idle' | 'opening' | 'waiting' | 'confirming'>('idle');
+
+  useEffect(() => {
+    if (!safeDeliveryOpen || !listing || deliveryFee !== null) return;
+    (async () => {
+      const [{ data: category }, { data: gw }] = await Promise.all([
+        supabase.from('categories').select('safe_delivery_fee_uah').eq('id', listing.category_id).maybeSingle(),
+        supabase.functions.invoke('payment-gateways'),
+      ]);
+      setDeliveryFee(Number(category?.safe_delivery_fee_uah ?? 0));
+      const gateways: string[] = gw?.gateways ?? [];
+      setAvailableGateways(gateways);
+      if (gateways.length === 1) setSelectedGateway(gateways[0]);
+    })();
+  }, [safeDeliveryOpen, listing, deliveryFee]);
+
+  async function handleSafeDeliveryBuy() {
+    if (!listing || !selectedGateway) {
+      alert('Наразі жоден спосіб оплати не увімкнений. Спробуйте пізніше.');
+      return;
+    }
+    try {
+      setPurchaseStage('opening');
+      const { data: result, error } = await supabase.functions.invoke('buy-with-safe-delivery', {
+        body: { listing_id: listing.id, gateway: selectedGateway },
+      });
+      if (error || !result || result.error) {
+        throw new Error(await getFunctionErrorMessage(error, result, 'Не вдалося оформити покупку'));
+      }
+
+      window.open(result.payment_url, '_blank', 'noopener,noreferrer');
+
+      setPurchaseStage('waiting');
+      let status: string | null = null;
+      for (let attempt = 0; attempt < PAYMENT_POLL_MAX_ATTEMPTS; attempt++) {
+        const { data: check } = await supabase.functions.invoke('check-safe-delivery-payment-status', {
+          body: { order_reference: result.order_reference },
+        });
+        status = check?.status ?? null;
+        if (status === 'paid' || status === 'failed') break;
+        await sleep(PAYMENT_POLL_INTERVAL_MS);
+      }
+
+      if (status === 'failed') {
+        alert('Оплату не завершено. Спробуйте оплатити ще раз.');
+        return;
+      }
+      if (status !== 'paid') {
+        alert('Оплата обробляється трохи довше — перевірте статус за кілька хвилин у своїх повідомленнях.');
+        return;
+      }
+
+      setPurchaseStage('confirming');
+      const { data: confirmed, error: confirmError } = await supabase.functions.invoke('confirm-safe-delivery-purchase', {
+        body: { order_reference: result.order_reference },
+      });
+      if (confirmError || !confirmed || confirmed.error) {
+        throw new Error(
+          await getFunctionErrorMessage(confirmError, confirmed, 'Оплата пройшла, але не вдалося оформити покупку. Зверніться у підтримку.'),
+        );
+      }
+
+      alert("Куплено! 🚚 Оплату прийнято, кошти в безпечному утриманні Coffee One. Деталі — у чаті з продавцем.");
+      navigate(`/chats/${confirmed.conversation_id}`);
+    } catch (e: any) {
+      alert(e.message ?? 'Сталася помилка');
+    } finally {
+      setPurchaseStage('idle');
+    }
+  }
 
   if (loading) {
     return <div className="text-center py-24 text-coffee-muted">Завантаження…</div>;
@@ -135,21 +221,34 @@ export default function ListingDetailPage() {
         </div>
 
         {!isOwner && (
-          <div className="flex flex-col sm:flex-row gap-2.5 mt-4">
-            <button
-              onClick={() => goToChat(false)}
-              disabled={contacting}
-              className="flex-1 border-2 border-coffee-blue text-coffee-blue font-bold rounded-xl py-3 hover:bg-coffee-blue-light transition-colors disabled:opacity-50"
-            >
-              💬 Написати
-            </button>
-            <button
-              onClick={() => setOfferOpen(true)}
-              disabled={contacting}
-              className="flex-1 border-2 border-coffee-blue text-coffee-blue font-bold rounded-xl py-3 hover:bg-coffee-blue-light transition-colors disabled:opacity-50"
-            >
-              💰 Пропозиція
-            </button>
+          <div className="flex flex-col gap-2.5 mt-4">
+            {listing.safe_payment_enabled && (
+              <button
+                onClick={() => {
+                  if (!isAuthenticated) { navigate('/login'); return; }
+                  setSafeDeliveryOpen(true);
+                }}
+                className="w-full bg-coffee-dark text-white font-extrabold rounded-xl py-3.5 hover:opacity-90 transition-opacity"
+              >
+                🚚 Купити з безпечною доставкою
+              </button>
+            )}
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <button
+                onClick={() => goToChat(false)}
+                disabled={contacting}
+                className="flex-1 border-2 border-coffee-blue text-coffee-blue font-bold rounded-xl py-3 hover:bg-coffee-blue-light transition-colors disabled:opacity-50"
+              >
+                💬 Написати
+              </button>
+              <button
+                onClick={() => setOfferOpen(true)}
+                disabled={contacting}
+                className="flex-1 border-2 border-coffee-blue text-coffee-blue font-bold rounded-xl py-3 hover:bg-coffee-blue-light transition-colors disabled:opacity-50"
+              >
+                💰 Пропозиція
+              </button>
+            </div>
           </div>
         )}
 
@@ -180,6 +279,85 @@ export default function ListingDetailPage() {
                   Надіслати
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {safeDeliveryOpen && (
+          <div
+            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+            onClick={() => purchaseStage === 'idle' && setSafeDeliveryOpen(false)}
+          >
+            <div className="bg-white rounded-2xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+              <div className="font-extrabold text-coffee-dark text-lg mb-4">Купити з безпечною доставкою</div>
+
+              {deliveryFee === null ? (
+                <div className="text-coffee-muted text-sm py-4 text-center">Завантаження…</div>
+              ) : (
+                <>
+                  <div className="bg-coffee-surface rounded-xl p-4">
+                    <div className="flex items-center justify-between text-sm py-1">
+                      <span className="text-coffee-muted">Ціна товару</span>
+                      <span className="font-bold text-coffee-dark">{Number(listing.price_uah).toLocaleString('uk-UA')} ₴</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm py-1">
+                      <span className="text-coffee-muted">Безпечна доставка</span>
+                      <span className="font-bold text-coffee-dark">{deliveryFee > 0 ? `${deliveryFee.toLocaleString('uk-UA')} ₴` : 'Безкоштовно'}</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-coffee-line">
+                      <span className="font-bold text-coffee-dark">До сплати</span>
+                      <span className="font-extrabold text-coffee-dark text-lg">
+                        {(Number(listing.price_uah) + deliveryFee).toLocaleString('uk-UA')} ₴
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-coffee-muted text-xs leading-relaxed mt-3">
+                    Гроші «заморожуються» у Coffee One, поки ви не отримаєте товар і не підтвердите угоду. Ми беремо на
+                    себе логістику й арбітраж спірних випадків.
+                  </p>
+
+                  {availableGateways != null && availableGateways.length > 1 && (
+                    <div className="mt-4">
+                      <div className="text-xs font-bold text-coffee-muted uppercase tracking-wide mb-1.5">Спосіб оплати</div>
+                      <div className="grid gap-1.5 bg-coffee-surface border-2 border-coffee-line rounded-xl p-1" style={{ gridTemplateColumns: `repeat(${availableGateways.length}, 1fr)` }}>
+                        {availableGateways.map((gw) => (
+                          <button
+                            key={gw}
+                            onClick={() => setSelectedGateway(gw)}
+                            className={`text-sm font-semibold py-2 rounded-lg ${selectedGateway === gw ? 'bg-coffee-blue text-white' : 'text-coffee-muted hover:text-coffee-dark'}`}
+                          >
+                            {GATEWAY_LABEL[gw] ?? gw}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {availableGateways != null && availableGateways.length === 0 && (
+                    <p className="text-coffee-red text-xs font-semibold mt-3">Наразі жоден спосіб оплати не увімкнений. Спробуйте пізніше.</p>
+                  )}
+
+                  <div className="flex gap-2.5 mt-4">
+                    <button
+                      onClick={() => setSafeDeliveryOpen(false)}
+                      disabled={purchaseStage !== 'idle'}
+                      className="flex-1 bg-coffee-chip text-coffee-dark font-bold rounded-xl py-3 disabled:opacity-50"
+                    >
+                      Скасувати
+                    </button>
+                    <button
+                      onClick={handleSafeDeliveryBuy}
+                      disabled={purchaseStage !== 'idle' || !selectedGateway}
+                      className="flex-1 bg-coffee-blue text-white font-bold rounded-xl py-3 disabled:opacity-50"
+                    >
+                      {purchaseStage === 'idle' && 'Оплатити'}
+                      {purchaseStage === 'opening' && 'Секунду…'}
+                      {purchaseStage === 'waiting' && 'Очікуємо оплату…'}
+                      {purchaseStage === 'confirming' && 'Оформлюємо…'}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

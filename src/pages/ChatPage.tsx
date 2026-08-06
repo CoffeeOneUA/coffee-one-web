@@ -50,6 +50,17 @@ export default function ChatPage() {
   function renderMessage(m: ChatMessage) {
     const mine = m.sender_id === user?.id;
 
+    if (m.type === 'system') {
+      return (
+        <div key={m.id} className="flex justify-center my-1">
+          <div className="max-w-[90%] bg-coffee-blue-light rounded-2xl px-4 py-2.5 text-center">
+            <div className="text-coffee-blue font-semibold text-sm leading-relaxed">{m.body}</div>
+            <div className="text-coffee-blue/70 text-[10px] mt-1">{formatTime(m.created_at)}</div>
+          </div>
+        </div>
+      );
+    }
+
     if (m.type === 'offer') {
       const actionable = m.id === latestOfferId && m.offer_status === 'pending' && !mine;
       return (
