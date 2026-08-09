@@ -34,6 +34,7 @@ export type Listing = {
   is_verified: boolean;
   is_coffee_one_seller: boolean;
   safe_payment_enabled: boolean;
+  no_commission: boolean;
   status: string;
   sold_reason: 'marketplace' | 'other' | 'safe_delivery' | null;
   views: number;

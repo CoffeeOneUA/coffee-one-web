@@ -45,7 +45,7 @@ export default function ListingDetailPage() {
         supabase.from('categories').select('safe_delivery_fee_uah').eq('id', listing.category_id).maybeSingle(),
         supabase.functions.invoke('payment-gateways'),
       ]);
-      setDeliveryFee(Number(category?.safe_delivery_fee_uah ?? 0));
+      setDeliveryFee(listing.no_commission ? 0 : Number(category?.safe_delivery_fee_uah ?? 0));
       const gateways: string[] = gw?.gateways ?? [];
       setAvailableGateways(gateways);
       if (gateways.length === 1) setSelectedGateway(gateways[0]);
@@ -241,6 +241,9 @@ export default function ListingDetailPage() {
               className="w-full bg-coffee-dark text-white font-extrabold rounded-xl py-3.5 hover:opacity-90 transition-opacity"
             >
               🚚 Купити з безпечною доставкою
+              {listing.no_commission && (
+                <div className="text-coffee-green text-xs font-bold mt-0.5">💰 Без комісії — все включено у вартість</div>
+              )}
             </button>
             <div className="flex flex-col sm:flex-row gap-2.5">
               <button
@@ -323,6 +326,14 @@ export default function ListingDetailPage() {
                       </span>
                     </div>
                   </div>
+
+                  {listing.no_commission && (
+                    <div className="bg-coffee-green-light rounded-xl p-3 mt-3">
+                      <p className="text-coffee-green text-xs font-semibold leading-relaxed">
+                        💰 Без комісії — це товар від Coffee One, тож доставка нічого не коштує. Ціна, яку ви бачите, це все, що ви платите.
+                      </p>
+                    </div>
+                  )}
 
                   <p className="text-coffee-muted text-xs leading-relaxed mt-3">
                     Гроші «заморожуються» у Coffee One, поки ви не отримаєте товар і не підтвердите угоду. Ми беремо на

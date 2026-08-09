@@ -232,6 +232,16 @@ export default function AddListingPage() {
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function movePhoto(index: number, direction: -1 | 1) {
+    setPhotos((prev) => {
+      const target = index + direction;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  }
+
   async function handlePublish() {
     if (!brand) return alert('Оберіть бренд');
     if (!model) return alert('Введіть модель');
@@ -369,8 +379,29 @@ export default function AddListingPage() {
             {photos.map((p, i) => (
               <div key={p.previewUrl} className="relative w-24 h-24 rounded-xl overflow-hidden bg-coffee-blue-light">
                 <img src={p.previewUrl} className="w-full h-full object-cover" alt="" />
+                {i === 0 && (
+                  <span className="absolute bottom-6 left-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Головне</span>
+                )}
                 {p.uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-xs">…</div>}
                 <button onClick={() => removePhoto(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs flex items-center justify-center">✕</button>
+                <div className="absolute bottom-0 left-0 right-0 h-5 bg-black/50 flex items-center justify-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => movePhoto(i, -1)}
+                    disabled={i === 0}
+                    className="text-white text-[11px] font-bold disabled:opacity-30"
+                  >
+                    ◀
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => movePhoto(i, 1)}
+                    disabled={i === photos.length - 1}
+                    className="text-white text-[11px] font-bold disabled:opacity-30"
+                  >
+                    ▶
+                  </button>
+                </div>
               </div>
             ))}
             {photos.length < 8 && (
