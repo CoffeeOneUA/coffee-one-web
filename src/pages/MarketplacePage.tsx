@@ -24,6 +24,7 @@ export default function MarketplacePage() {
   const activeFilterCount =
     (filters.category ? 1 : 0) +
     (filters.brand ? 1 : 0) +
+    (filters.modelId ? 1 : 0) +
     (filters.condition?.length ?? 0) +
     (filters.groups?.length ?? 0) +
     (filters.priceMin != null || filters.priceMax != null ? 1 : 0);

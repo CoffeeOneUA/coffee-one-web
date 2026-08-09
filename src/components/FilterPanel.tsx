@@ -1,5 +1,6 @@
 import { useCategories } from '../hooks/useCategories';
 import { useBrands } from '../hooks/useBrands';
+import { useModels } from '../hooks/useModels';
 import type { ListingFilters } from '../hooks/useListings';
 
 const CONDITIONS = [
@@ -53,6 +54,8 @@ function ChipGroup({
 export function FilterPanel({ filters, onChange, onReset }: Props) {
   const { categories } = useCategories();
   const { brands } = useBrands();
+  const selectedBrand = brands.find((b) => b.slug === filters.brand);
+  const { models } = useModels(selectedBrand?.id ?? null);
 
   function toggleArray(key: 'condition' | 'groups', value: string) {
     const current = filters[key] ?? [];
@@ -61,7 +64,7 @@ export function FilterPanel({ filters, onChange, onReset }: Props) {
   }
 
   const hasActive =
-    !!filters.category || !!filters.brand || (filters.condition?.length ?? 0) > 0 || (filters.groups?.length ?? 0) > 0 || filters.priceMin != null || filters.priceMax != null;
+    !!filters.category || !!filters.brand || !!filters.modelId || (filters.condition?.length ?? 0) > 0 || (filters.groups?.length ?? 0) > 0 || filters.priceMin != null || filters.priceMax != null;
 
   return (
     <div className="bg-coffee-surface rounded-2xl p-5 flex flex-col gap-5">
@@ -102,7 +105,7 @@ export function FilterPanel({ filters, onChange, onReset }: Props) {
             return (
               <button
                 key={b.id}
-                onClick={() => onChange({ ...filters, brand: active ? undefined : b.slug })}
+                onClick={() => onChange({ ...filters, brand: active ? undefined : b.slug, modelId: undefined })}
                 className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
                   active ? 'bg-coffee-dark text-white border-coffee-dark' : 'bg-coffee-chip text-coffee-dark border-coffee-line hover:border-coffee-blue'
                 }`}
@@ -113,6 +116,28 @@ export function FilterPanel({ filters, onChange, onReset }: Props) {
           })}
         </div>
       </div>
+
+      {selectedBrand && models.length > 0 && (
+        <div>
+          <div className="text-[11px] font-bold text-coffee-muted uppercase tracking-wide mb-2">Модель</div>
+          <div className="flex flex-wrap gap-1.5">
+            {models.map((m) => {
+              const active = filters.modelId === m.id;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => onChange({ ...filters, modelId: active ? undefined : m.id })}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
+                    active ? 'bg-coffee-dark text-white border-coffee-dark' : 'bg-coffee-chip text-coffee-dark border-coffee-line hover:border-coffee-blue'
+                  }`}
+                >
+                  {m.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <ChipGroup label="Стан" options={CONDITIONS} selected={filters.condition ?? []} onToggle={(v) => toggleArray('condition', v)} />
       <ChipGroup label="Кількість груп" options={GROUPS.map((g) => ({ value: g, label: `${g} групи` }))} selected={filters.groups ?? []} onToggle={(v) => toggleArray('groups', v)} />

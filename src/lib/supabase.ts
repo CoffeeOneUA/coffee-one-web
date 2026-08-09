@@ -22,6 +22,7 @@ export type Listing = {
   title: string;
   brand_id: string;
   category_id: string;
+  model_id: string | null;
   price_usd: number;
   price_uah: number;
   condition: 'new' | 'used';

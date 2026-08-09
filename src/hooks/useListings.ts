@@ -7,6 +7,7 @@ export const ALL_UKRAINE = 'Вся Україна';
 export interface ListingFilters {
   category?: string;
   brand?: string;
+  modelId?: string;
   city?: string;
   condition?: string[];
   groups?: string[];
@@ -37,6 +38,7 @@ export function useListings(filters: ListingFilters) {
 
     if (filters.category) query = query.eq('categories.slug', filters.category);
     if (filters.brand) query = query.eq('brands.slug', filters.brand);
+    if (filters.modelId) query = query.eq('model_id', filters.modelId);
     // "Вся Україна" як фільтр покупця = без обмеження по місту (видно все).
     // Обране конкретне місто — показуємо і локальні оголошення, і ті, що
     // продавець позначив як доступні по всій Україні.

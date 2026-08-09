@@ -71,6 +71,7 @@ export default function AddListingPage() {
   const [category, setCategory] = useState('');
   const [brand, setBrand] = useState('');
   const [model, setModel] = useState('');
+  const [modelId, setModelId] = useState<string | null>(null);
   const [customModel, setCustomModel] = useState(false);
   const [condition, setCondition] = useState('used');
   const [groups, setGroups] = useState('2');
@@ -162,6 +163,7 @@ export default function AddListingPage() {
       setCategory(data.category_id ?? '');
       setBrand(data.brand_id ?? '');
       setModel(modelFromTitle);
+      setModelId(data.model_id ?? null);
       setCustomModel(true);
       setCondition(data.condition ?? 'used');
       setGroups(data.groups != null ? String(data.groups) : '2');
@@ -182,6 +184,7 @@ export default function AddListingPage() {
       return;
     }
     setModel('');
+    setModelId(null);
     setCustomModel(false);
   }, [brand]);
 
@@ -261,6 +264,7 @@ export default function AddListingPage() {
       title: `${brands.find((b) => b.id === brand)?.name} ${model}`,
       brand_id: brand,
       category_id: category,
+      model_id: modelId,
       price_usd: uahRate ? Math.round((priceNum / uahRate) * 100) / 100 : priceNum,
       price_uah: priceNum,
       condition,
@@ -442,19 +446,26 @@ export default function AddListingPage() {
         <Field label="Модель">
           {models.length > 0 && !customModel ? (
             <>
-              <select value={model} onChange={(e) => setModel(e.target.value)} className={selectClass}>
+              <select
+                value={model}
+                onChange={(e) => {
+                  setModel(e.target.value);
+                  setModelId(models.find((m) => m.name === e.target.value)?.id ?? null);
+                }}
+                className={selectClass}
+              >
                 <option value="">Оберіть модель</option>
                 {models.map((m) => (
                   <option key={m.id} value={m.name}>{m.name}</option>
                 ))}
               </select>
-              <button onClick={() => { setCustomModel(true); setModel(''); }} className="text-xs font-semibold text-coffee-blue mt-2">
+              <button onClick={() => { setCustomModel(true); setModel(''); setModelId(null); }} className="text-xs font-semibold text-coffee-blue mt-2">
                 Немає в списку — вписати вручну
               </button>
             </>
           ) : (
             <>
-              <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="Напр. Linea PB" className={inputClass} />
+              <input value={model} onChange={(e) => { setModel(e.target.value); setModelId(null); }} placeholder="Напр. Linea PB" className={inputClass} />
               {models.length > 0 && (
                 <button onClick={() => setCustomModel(false)} className="text-xs font-semibold text-coffee-blue mt-2">← Обрати зі списку</button>
               )}

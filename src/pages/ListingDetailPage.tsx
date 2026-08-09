@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useListing } from '../hooks/useListings';
 import { useFavorites } from '../hooks/useFavorites';
@@ -28,6 +28,8 @@ export default function ListingDetailPage() {
   const { listingIds: favoriteIds, toggleListingFavorite } = useFavorites();
   const { user, isAuthenticated } = useAuth();
   const [activePhoto, setActivePhoto] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const touchStartXRef = useRef(0);
   const [contacting, setContacting] = useState(false);
   const [offerAmount, setOfferAmount] = useState('');
   const [offerOpen, setOfferOpen] = useState(false);
@@ -51,6 +53,18 @@ export default function ListingDetailPage() {
       if (gateways.length === 1) setSelectedGateway(gateways[0]);
     })();
   }, [safeDeliveryOpen, listing, deliveryFee]);
+
+  useEffect(() => {
+    if (!lightboxOpen || !listing) return;
+    const total = listing.photos?.length ?? 0;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setLightboxOpen(false);
+      else if (total > 1 && e.key === 'ArrowLeft') setActivePhoto((i) => (i - 1 + total) % total);
+      else if (total > 1 && e.key === 'ArrowRight') setActivePhoto((i) => (i + 1) % total);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [lightboxOpen, listing]);
 
   async function handleSafeDeliveryBuy() {
     if (!listing || !selectedGateway) {
@@ -123,6 +137,24 @@ export default function ListingDetailPage() {
   const liked = favoriteIds.has(listing.id);
   const photos = listing.photos ?? [];
 
+  function prevPhoto() {
+    setActivePhoto((i) => (i - 1 + photos.length) % photos.length);
+  }
+  function nextPhoto() {
+    setActivePhoto((i) => (i + 1) % photos.length);
+  }
+
+  // Свайп по фото — і на головному зображенні, і в лайтбоксі.
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartXRef.current = e.touches[0].clientX;
+  }
+  function handleTouchEnd(e: React.TouchEvent) {
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    if (Math.abs(deltaX) < 40 || photos.length < 2) return;
+    if (deltaX > 0) prevPhoto();
+    else nextPhoto();
+  }
+
   async function goToChat(openOffer: boolean) {
     if (!isAuthenticated) {
       navigate('/login');
@@ -139,23 +171,53 @@ export default function ListingDetailPage() {
     <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-8">
       {/* Photos */}
       <div>
-        <div className="relative aspect-video bg-coffee-blue-light rounded-2xl overflow-hidden">
+        <div
+          className="relative aspect-[4/3] bg-coffee-blue-light rounded-2xl overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           {listing.is_coffee_one_seller && (
             <div className="absolute top-0 left-0 right-0 z-10 bg-coffee-blue text-white text-xs font-bold text-center py-1.5">
               ☕ Продавець Coffee One
             </div>
           )}
           {photos.length > 0 ? (
-            <img src={photos[activePhoto]} alt={listing.title} className="w-full h-full object-cover" />
+            <img
+              src={photos[activePhoto]}
+              alt={listing.title}
+              onClick={() => setLightboxOpen(true)}
+              className="w-full h-full object-cover cursor-zoom-in"
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-8xl">☕</div>
           )}
           <button
             onClick={() => toggleListingFavorite(listing.id)}
-            className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-lg"
+            className="absolute top-3 right-3 z-20 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-lg"
           >
             <span className={liked ? 'text-coffee-red' : 'text-coffee-muted'}>{liked ? '♥' : '♡'}</span>
           </button>
+          {photos.length > 1 && (
+            <>
+              <button
+                onClick={prevPhoto}
+                aria-label="Попереднє фото"
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/90 flex items-center justify-center text-lg hover:bg-white transition-colors"
+              >
+                ‹
+              </button>
+              <button
+                onClick={nextPhoto}
+                aria-label="Наступне фото"
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/90 flex items-center justify-center text-lg hover:bg-white transition-colors"
+              >
+                ›
+              </button>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 bg-black/55 text-white text-[11px] font-semibold px-2 py-1 rounded-lg">
+                {activePhoto + 1}/{photos.length}
+              </div>
+            </>
+          )}
         </div>
         {photos.length > 1 && (
           <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
@@ -163,7 +225,7 @@ export default function ListingDetailPage() {
               <button
                 key={p}
                 onClick={() => setActivePhoto(i)}
-                className={`shrink-0 w-20 aspect-video rounded-lg overflow-hidden border-2 ${i === activePhoto ? 'border-coffee-blue' : 'border-transparent'}`}
+                className={`shrink-0 w-20 aspect-[4/3] rounded-lg overflow-hidden border-2 ${i === activePhoto ? 'border-coffee-blue' : 'border-transparent'}`}
               >
                 <img src={p} alt="" className="w-full h-full object-cover" />
               </button>
@@ -382,6 +444,50 @@ export default function ListingDetailPage() {
                 </>
               )}
             </div>
+          </div>
+        )}
+
+        {lightboxOpen && photos.length > 0 && (
+          <div
+            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center"
+            onClick={() => setLightboxOpen(false)}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            <button
+              onClick={() => setLightboxOpen(false)}
+              aria-label="Закрити"
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xl"
+            >
+              ✕
+            </button>
+            <img
+              src={photos[activePhoto]}
+              alt={listing.title}
+              onClick={(e) => e.stopPropagation()}
+              className="max-w-[92vw] max-h-[85vh] object-contain"
+            />
+            {photos.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
+                  aria-label="Попереднє фото"
+                  className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-2xl"
+                >
+                  ‹
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
+                  aria-label="Наступне фото"
+                  className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-2xl"
+                >
+                  ›
+                </button>
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/10 text-white text-xs font-semibold px-2.5 py-1 rounded-lg">
+                  {activePhoto + 1}/{photos.length}
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
