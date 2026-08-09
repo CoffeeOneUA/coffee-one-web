@@ -8,6 +8,7 @@ interface Profile {
   full_name: string | null;
   phone: string | null;
   city: string | null;
+  avatar_url: string | null;
   rating: number | null;
   reviews_count: number | null;
 }
@@ -38,7 +39,7 @@ export default function ProfilePage() {
     if (!user) return;
     (async () => {
       const [{ data: p }, { data: l }] = await Promise.all([
-        supabase.from('profiles').select('full_name, phone, city, rating, reviews_count').eq('id', user.id).maybeSingle(),
+        supabase.from('profiles').select('full_name, phone, city, avatar_url, rating, reviews_count').eq('id', user.id).maybeSingle(),
         supabase.from('listings').select('id, title, price_uah, status, sold_reason, created_at').eq('user_id', user.id).order('created_at', { ascending: false }),
       ]);
       setProfile(p);
@@ -62,8 +63,12 @@ export default function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="bg-coffee-surface rounded-2xl p-6 flex items-center gap-4 mb-4">
-        <div className="w-16 h-16 rounded-full bg-coffee-blue text-white flex items-center justify-center font-extrabold text-2xl shrink-0">
-          {profile?.full_name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? 'U'}
+        <div className="w-16 h-16 rounded-full bg-coffee-blue text-white flex items-center justify-center font-extrabold text-2xl shrink-0 overflow-hidden">
+          {profile?.avatar_url ? (
+            <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            profile?.full_name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? 'U'
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-extrabold text-coffee-dark text-lg">{profile?.full_name || 'Користувач'}</div>

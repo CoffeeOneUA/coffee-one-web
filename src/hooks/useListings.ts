@@ -33,7 +33,7 @@ export function useListings(filters: ListingFilters) {
 
     let query = supabase
       .from('listings')
-      .select('*, brands!inner(name, slug), categories!inner(name, emoji, slug), profiles(full_name, city, rating, reviews_count)')
+      .select('*, brands!inner(name, slug), categories!inner(name, emoji, slug), profiles(full_name, avatar_url, city, rating, reviews_count)')
       .eq('status', 'approved');
 
     if (filters.category) query = query.eq('categories.slug', filters.category);
@@ -78,7 +78,7 @@ export function useListing(id: string | undefined) {
     if (!id) return;
     supabase
       .from('listings')
-      .select('*, brands(name), categories(name, emoji), profiles(full_name, phone, city, rating, reviews_count)')
+      .select('*, brands(name), categories(name, emoji), profiles(full_name, phone, avatar_url, city, rating, reviews_count)')
       .eq('id', id)
       .single()
       .then(({ data }) => {

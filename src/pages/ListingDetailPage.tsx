@@ -273,8 +273,12 @@ export default function ListingDetailPage() {
 
         <div className="font-extrabold text-coffee-dark mt-6 mb-2">Продавець</div>
         <div className="bg-coffee-surface rounded-xl p-4 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-coffee-blue text-white flex items-center justify-center font-extrabold text-lg shrink-0">
-            {listing.profiles?.full_name?.[0]?.toUpperCase() ?? 'К'}
+          <div className="w-12 h-12 rounded-full bg-coffee-blue text-white flex items-center justify-center font-extrabold text-lg shrink-0 overflow-hidden">
+            {listing.profiles?.avatar_url ? (
+              <img src={listing.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+            ) : (
+              listing.profiles?.full_name?.[0]?.toUpperCase() ?? 'К'
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-bold text-coffee-dark">{isOwner ? 'Це ваше оголошення' : listing.profiles?.full_name ?? 'Продавець'}</div>

@@ -12,6 +12,7 @@ export type Profile = {
   full_name: string | null;
   phone: string | null;
   city: string | null;
+  avatar_url: string | null;
   rating: number | null;
   reviews_count: number | null;
 };
