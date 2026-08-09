@@ -81,6 +81,7 @@ export default function AddListingPage() {
   const [city, setCity] = useState('');
   const [description, setDescription] = useState('');
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [draggedPhoto, setDraggedPhoto] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [stage, setStage] = useState<'idle' | 'opening' | 'waiting' | 'creating'>('idle');
   const [availableGateways, setAvailableGateways] = useState<string[] | null>(null);
@@ -232,12 +233,12 @@ export default function AddListingPage() {
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function movePhoto(index: number, direction: -1 | 1) {
+  function reorderPhotos(from: number, to: number) {
+    if (from === to) return;
     setPhotos((prev) => {
-      const target = index + direction;
-      if (target < 0 || target >= prev.length) return prev;
       const next = [...prev];
-      [next[index], next[target]] = [next[target], next[index]];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
       return next;
     });
   }
@@ -375,33 +376,28 @@ export default function AddListingPage() {
 
       <div className="flex flex-col gap-5">
         <Field label={`Фото (${photos.length}/8)`}>
+          {photos.length > 1 && <p className="text-[11px] text-coffee-muted -mt-1.5 mb-2">Перетягніть фото, щоб змінити порядок</p>}
           <div className="flex flex-wrap gap-2.5">
             {photos.map((p, i) => (
-              <div key={p.previewUrl} className="relative w-24 h-24 rounded-xl overflow-hidden bg-coffee-blue-light">
-                <img src={p.previewUrl} className="w-full h-full object-cover" alt="" />
+              <div
+                key={p.previewUrl}
+                draggable
+                onDragStart={() => setDraggedPhoto(i)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (draggedPhoto !== null) reorderPhotos(draggedPhoto, i);
+                  setDraggedPhoto(null);
+                }}
+                onDragEnd={() => setDraggedPhoto(null)}
+                className={`relative w-24 h-24 rounded-xl overflow-hidden bg-coffee-blue-light cursor-grab active:cursor-grabbing ${draggedPhoto === i ? 'opacity-40' : ''}`}
+              >
+                <img src={p.previewUrl} className="w-full h-full object-cover pointer-events-none" alt="" />
                 {i === 0 && (
-                  <span className="absolute bottom-6 left-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Головне</span>
+                  <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Головне</span>
                 )}
                 {p.uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-xs">…</div>}
                 <button onClick={() => removePhoto(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs flex items-center justify-center">✕</button>
-                <div className="absolute bottom-0 left-0 right-0 h-5 bg-black/50 flex items-center justify-center gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => movePhoto(i, -1)}
-                    disabled={i === 0}
-                    className="text-white text-[11px] font-bold disabled:opacity-30"
-                  >
-                    ◀
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => movePhoto(i, 1)}
-                    disabled={i === photos.length - 1}
-                    className="text-white text-[11px] font-bold disabled:opacity-30"
-                  >
-                    ▶
-                  </button>
-                </div>
               </div>
             ))}
             {photos.length < 8 && (
