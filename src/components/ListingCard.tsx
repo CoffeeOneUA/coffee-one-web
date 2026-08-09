@@ -19,7 +19,7 @@ export function ListingCard({ listing, isFavorite, onToggleFavorite }: Props) {
       to={`/listing/${listing.id}`}
       className="group block bg-coffee-surface rounded-2xl overflow-hidden shadow-[0_4px_14px_rgba(30,50,80,0.07)] hover:shadow-[0_8px_24px_rgba(30,50,80,0.12)] transition-shadow"
     >
-      <div className="relative aspect-video bg-coffee-blue-light overflow-hidden">
+      <div className="relative aspect-[4/3] bg-coffee-blue-light overflow-hidden">
         {listing.is_coffee_one_seller && (
           <div className="absolute top-0 left-0 right-0 z-10 bg-coffee-blue text-white text-[11px] font-bold text-center py-1">
             ☕ Продавець Coffee One
@@ -46,7 +46,7 @@ export function ListingCard({ listing, isFavorite, onToggleFavorite }: Props) {
             e.preventDefault();
             onToggleFavorite();
           }}
-          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 backdrop-blur flex items-center justify-center text-base hover:scale-105 transition-transform"
+          className="absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/90 backdrop-blur flex items-center justify-center text-base hover:scale-105 transition-transform"
         >
           <span className={isFavorite ? 'text-coffee-red' : 'text-coffee-muted'}>{isFavorite ? '♥' : '♡'}</span>
         </button>
@@ -77,6 +77,9 @@ export function ListingCard({ listing, isFavorite, onToggleFavorite }: Props) {
           <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-coffee-chip text-coffee-dark">
             {listing.condition === 'new' ? 'Нове' : 'Вживане'}
           </span>
+          {listing.no_commission && (
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-coffee-green-light text-coffee-green">💰 Без комісії</span>
+          )}
         </div>
 
         <div className="mt-3 pt-3 border-t border-coffee-line flex items-center justify-between text-xs text-coffee-muted">
