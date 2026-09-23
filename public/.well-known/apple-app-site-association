@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "542N5Q4QDT.ua.coffeeone.app",
+        "paths": ["/listing/*"]
+      }
+    ]
+  }
+}

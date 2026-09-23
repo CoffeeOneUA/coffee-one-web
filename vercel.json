@@ -1,5 +1,6 @@
 {
   "routes": [
+    { "src": "/.well-known/apple-app-site-association", "headers": { "content-type": "application/json" }, "continue": true },
     { "src": "/api/(.*)", "dest": "/api/$1" },
     {
       "src": "/(.*\\.(?:js|css|png|jpg|jpeg|gif|svg|webp|mp4|webm|woff|woff2|ttf|otf|eot|ico|xml|txt|pdf|zip|json|webmanifest))$",
