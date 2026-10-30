@@ -8,6 +8,7 @@ import { getFunctionErrorMessage } from '../lib/functionError';
 import { supabase } from '../lib/supabase';
 import { StarRating } from '../components/StarRating';
 import { Icon } from '../components/Icon';
+import { pluralGroups } from '../lib/pluralize';
 
 const PAYMENT_POLL_INTERVAL_MS = 2500;
 const PAYMENT_POLL_MAX_ATTEMPTS = 48; // ~2 хв
@@ -255,7 +256,7 @@ export default function ListingDetailPage() {
           {[
             { k: 'Бренд', v: listing.brands?.name ?? '—' },
             { k: 'Категорія', v: listing.categories?.name ?? '—' },
-            { k: 'Групи', v: listing.groups ? `${listing.groups} групи` : '—' },
+            { k: 'Групи', v: listing.groups ? `${listing.groups} ${pluralGroups(listing.groups)}` : '—' },
             { k: 'Рік', v: listing.year ? String(listing.year) : '—' },
             { k: 'Стан', v: listing.condition === 'new' ? 'Нове' : 'Вживане' },
             { k: 'Місто', v: listing.city },

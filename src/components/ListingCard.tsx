@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { Listing } from '../lib/supabase';
 import { Icon } from './Icon';
+import { pluralGroups } from '../lib/pluralize';
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Kyiv' });
@@ -79,7 +80,7 @@ export function ListingCard({ listing, isFavorite, onToggleFavorite }: Props) {
             <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-coffee-chip text-coffee-dark">{listing.categories.name}</span>
           )}
           {listing.groups ? (
-            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-coffee-chip text-coffee-dark">{listing.groups} групи</span>
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-coffee-chip text-coffee-dark">{listing.groups} {pluralGroups(listing.groups)}</span>
           ) : null}
           <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-coffee-chip text-coffee-dark">
             {listing.condition === 'new' ? 'Нове' : 'Вживане'}

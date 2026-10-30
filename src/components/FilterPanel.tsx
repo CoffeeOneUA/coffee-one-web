@@ -4,6 +4,7 @@ import { useModels } from '../hooks/useModels';
 import type { ListingFilters } from '../hooks/useListings';
 import { Icon } from './Icon';
 import { categoryIcon } from '../lib/categoryIcons';
+import { pluralGroups } from '../lib/pluralize';
 
 const CONDITIONS = [
   { value: 'new', label: 'Нове' },
@@ -142,7 +143,7 @@ export function FilterPanel({ filters, onChange, onReset }: Props) {
       )}
 
       <ChipGroup label="Стан" options={CONDITIONS} selected={filters.condition ?? []} onToggle={(v) => toggleArray('condition', v)} />
-      <ChipGroup label="Кількість груп" options={GROUPS.map((g) => ({ value: g, label: `${g} групи` }))} selected={filters.groups ?? []} onToggle={(v) => toggleArray('groups', v)} />
+      <ChipGroup label="Кількість груп" options={GROUPS.map((g) => ({ value: g, label: `${g} ${pluralGroups(Number(g))}` }))} selected={filters.groups ?? []} onToggle={(v) => toggleArray('groups', v)} />
 
       <div>
         <div className="text-[11px] font-bold text-coffee-muted uppercase tracking-wide mb-2">
