@@ -13,6 +13,9 @@ dist-ssr
 *.local
 .env
 
+# GitHub PAT for git push (git credential-store format) — never commit
+.git-credentials
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
