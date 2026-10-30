@@ -6,6 +6,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useModels } from '../hooks/useModels';
 import { useCities } from '../hooks/useCities';
 import { useExchangeRate } from '../hooks/useExchangeRate';
+import { Icon } from '../components/Icon';
+import { categoryIcon } from '../lib/categoryIcons';
 
 const PAYMENT_POLL_INTERVAL_MS = 2500;
 const PAYMENT_POLL_MAX_ATTEMPTS = 48; // ~2 хв
@@ -310,7 +312,7 @@ export default function AddListingPage() {
       }
 
       if (payment.free) {
-        alert("Оголошення подано! ☕ Воно на модерації і з'явиться на маркетплейсі після перевірки.");
+        alert("Оголошення подано! Воно на модерації і з'явиться на маркетплейсі після перевірки.");
         navigate('/profile');
         return;
       }
@@ -347,7 +349,7 @@ export default function AddListingPage() {
         throw new Error(await getFunctionErrorMessage(createError, listing, 'Оплата пройшла, але не вдалося створити оголошення. Зверніться у підтримку.'));
       }
 
-      alert("Оголошення подано! ☕ Воно на модерації і з'явиться на маркетплейсі після перевірки.");
+      alert("Оголошення подано! Воно на модерації і з'явиться на маркетплейсі після перевірки.");
       navigate('/profile');
     } catch (e: any) {
       alert(e.message ?? 'Сталася помилка');
@@ -401,7 +403,9 @@ export default function AddListingPage() {
                   <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Головне</span>
                 )}
                 {p.uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-xs">…</div>}
-                <button onClick={() => removePhoto(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs flex items-center justify-center">✕</button>
+                <button onClick={() => removePhoto(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center">
+                  <Icon name="close" size={11} />
+                </button>
               </div>
             ))}
             {photos.length < 8 && (
@@ -420,9 +424,9 @@ export default function AddListingPage() {
               <button
                 key={c.id}
                 onClick={() => setCategory(c.id)}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${category === c.id ? 'bg-coffee-dark text-white border-coffee-dark' : 'bg-coffee-chip text-coffee-dark border-coffee-line hover:border-coffee-blue'}`}
+                className={`text-xs font-semibold px-3 py-1.5 rounded-lg border inline-flex items-center gap-1.5 ${category === c.id ? 'bg-coffee-dark text-white border-coffee-dark' : 'bg-coffee-chip text-coffee-dark border-coffee-line hover:border-coffee-blue'}`}
               >
-                {c.emoji} {c.name}
+                <Icon name={categoryIcon(c.slug)} size={13} /> {c.name}
               </button>
             ))}
           </div>

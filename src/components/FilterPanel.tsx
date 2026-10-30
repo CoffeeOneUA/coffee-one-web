@@ -2,6 +2,8 @@ import { useCategories } from '../hooks/useCategories';
 import { useBrands } from '../hooks/useBrands';
 import { useModels } from '../hooks/useModels';
 import type { ListingFilters } from '../hooks/useListings';
+import { Icon } from './Icon';
+import { categoryIcon } from '../lib/categoryIcons';
 
 const CONDITIONS = [
   { value: 'new', label: 'Нове' },
@@ -86,11 +88,11 @@ export function FilterPanel({ filters, onChange, onReset }: Props) {
               <button
                 key={c.id}
                 onClick={() => onChange({ ...filters, category: active ? undefined : c.slug })}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
+                className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors inline-flex items-center gap-1.5 ${
                   active ? 'bg-coffee-dark text-white border-coffee-dark' : 'bg-coffee-chip text-coffee-dark border-coffee-line hover:border-coffee-blue'
                 }`}
               >
-                {c.emoji} {c.name}
+                <Icon name={categoryIcon(c.slug)} size={13} /> {c.name}
               </button>
             );
           })}

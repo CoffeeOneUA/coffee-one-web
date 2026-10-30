@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useCities } from '../hooks/useCities';
 import { useCity } from '../contexts/CityContext';
+import { Icon } from './Icon';
 
 export function CityPickerModal({ onClose }: { onClose: () => void }) {
   const { cities } = useCities();
@@ -16,7 +17,9 @@ export function CityPickerModal({ onClose }: { onClose: () => void }) {
       <div className="bg-white rounded-2xl w-full max-w-sm max-h-[70vh] overflow-y-auto p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <span className="font-extrabold text-coffee-dark text-lg">Оберіть місто</span>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-coffee-chip flex items-center justify-center text-coffee-dark">✕</button>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-coffee-chip flex items-center justify-center text-coffee-dark">
+            <Icon name="close" size={15} />
+          </button>
         </div>
         <div className="flex flex-col gap-2">
           {cities.map((c) => {
@@ -30,7 +33,7 @@ export function CityPickerModal({ onClose }: { onClose: () => void }) {
                 }`}
               >
                 {c.name}
-                {active && <span className="font-extrabold">✓</span>}
+                {active && <Icon name="checkCircle" size={16} />}
               </button>
             );
           })}

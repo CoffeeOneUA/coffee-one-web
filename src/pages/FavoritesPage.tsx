@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, type Listing } from '../lib/supabase';
 import { useFavorites } from '../hooks/useFavorites';
 import { ListingCard } from '../components/ListingCard';
+import { Icon } from '../components/Icon';
 
 export default function FavoritesPage() {
   const { listingIds, loading: favLoading, toggleListingFavorite } = useFavorites();
@@ -35,7 +36,7 @@ export default function FavoritesPage() {
         <div className="text-coffee-muted text-center py-16">Завантаження…</div>
       ) : listings.length === 0 ? (
         <div className="bg-coffee-surface rounded-2xl p-14 text-center">
-          <div className="text-5xl mb-3">🤍</div>
+          <div className="flex justify-center mb-3"><Icon name="heart" size={44} color="var(--color-coffee-muted)" /></div>
           <div className="font-extrabold text-coffee-dark text-lg mb-1">Обраного поки немає</div>
           <div className="text-coffee-muted text-sm">Тапніть на сердечко на оголошенні, щоб додати його сюди</div>
         </div>

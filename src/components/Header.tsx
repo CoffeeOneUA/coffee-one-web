@@ -5,6 +5,7 @@ import { useConversations } from '../hooks/useConversations';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { useCity } from '../contexts/CityContext';
 import { CityPickerModal } from './CityPickerModal';
+import { Icon } from './Icon';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
@@ -29,15 +30,17 @@ export function Header() {
             {logo_url ? (
               <img src={logo_url} alt={site_name} className="w-9 h-9 rounded-xl object-cover" />
             ) : (
-              <span className="w-9 h-9 rounded-xl bg-coffee-blue text-white flex items-center justify-center text-lg">☕</span>
+              <span className="w-9 h-9 rounded-xl bg-coffee-blue text-white flex items-center justify-center">
+                <Icon name="coffeeCup" size={18} />
+              </span>
             )}
             <span className="font-extrabold text-coffee-dark text-lg tracking-tight hidden xs:inline">{site_name}</span>
           </Link>
           <button
             onClick={() => setCityPickerOpen(true)}
-            className="ml-1 px-3 py-1.5 rounded-full bg-coffee-chip text-coffee-dark text-xs font-bold hover:bg-coffee-line transition-colors shrink-0"
+            className="ml-1 px-3 py-1.5 rounded-full bg-coffee-chip text-coffee-dark text-xs font-bold hover:bg-coffee-line transition-colors shrink-0 inline-flex items-center gap-1"
           >
-            📍 {city}
+            <Icon name="pin" size={12} /> {city}
           </button>
         </div>
 
@@ -98,7 +101,7 @@ export function Header() {
             aria-expanded={menuOpen}
             className="relative w-10 h-10 rounded-lg flex items-center justify-center text-coffee-dark hover:bg-coffee-chip transition-colors"
           >
-            <span className="text-xl leading-none">{menuOpen ? '✕' : '☰'}</span>
+            <Icon name={menuOpen ? 'close' : 'menu'} size={20} />
             {!menuOpen && unreadTotal > 0 && (
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-coffee-red" />
             )}

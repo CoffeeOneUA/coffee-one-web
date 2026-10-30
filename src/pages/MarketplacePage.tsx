@@ -5,6 +5,7 @@ import { useCity } from '../contexts/CityContext';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { ListingCard } from '../components/ListingCard';
 import { FilterPanel } from '../components/FilterPanel';
+import { Icon } from '../components/Icon';
 
 const SORT_OPTIONS: { value: NonNullable<ListingFilters['sort']>; label: string }[] = [
   { value: 'newest', label: 'Спочатку нові' },
@@ -90,7 +91,7 @@ export default function MarketplacePage() {
             </div>
           ) : listings.length === 0 ? (
             <div className="bg-coffee-surface rounded-2xl p-14 text-center">
-              <div className="text-5xl mb-3">📭</div>
+              <div className="flex justify-center mb-3"><Icon name="inbox" size={44} color="var(--color-coffee-muted)" /></div>
               <div className="font-extrabold text-coffee-dark text-lg mb-1">Оголошень не знайдено</div>
               <div className="text-coffee-muted text-sm">Спробуйте змінити фільтри або пошук</div>
             </div>

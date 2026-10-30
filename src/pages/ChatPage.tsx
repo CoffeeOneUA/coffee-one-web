@@ -3,6 +3,7 @@ import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { useMessages } from '../hooks/useMessages';
 import { useAuth } from '../contexts/AuthContext';
 import type { ChatMessage } from '../lib/supabase';
+import { Icon } from '../components/Icon';
 
 function formatTime(dateStr: string): string {
   return new Date(dateStr).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
@@ -128,7 +129,7 @@ export default function ChatPage() {
           className="flex-1 bg-coffee-surface rounded-full px-4 py-2.5 outline-none focus:ring-2 focus:ring-coffee-blue"
         />
         <button type="submit" disabled={!text.trim()} className="w-11 h-11 rounded-full bg-coffee-blue text-white flex items-center justify-center disabled:opacity-50 shrink-0">
-          ➤
+          <Icon name="send" size={17} />
         </button>
       </form>
     </div>

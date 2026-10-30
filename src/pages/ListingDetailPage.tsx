@@ -7,6 +7,7 @@ import { getOrCreateConversation } from '../hooks/useConversations';
 import { getFunctionErrorMessage } from '../lib/functionError';
 import { supabase } from '../lib/supabase';
 import { StarRating } from '../components/StarRating';
+import { Icon } from '../components/Icon';
 
 const PAYMENT_POLL_INTERVAL_MS = 2500;
 const PAYMENT_POLL_MAX_ATTEMPTS = 48; // ~2 хв
@@ -112,7 +113,7 @@ export default function ListingDetailPage() {
         );
       }
 
-      alert("Куплено! 🚚 Оплату прийнято, кошти в безпечному утриманні Coffee One. Деталі — у чаті з продавцем.");
+      alert('Куплено! Оплату прийнято, кошти в безпечному утриманні Coffee One. Деталі — у чаті з продавцем.');
       navigate(`/chats/${confirmed.conversation_id}`);
     } catch (e: any) {
       alert(e.message ?? 'Сталася помилка');
@@ -177,8 +178,8 @@ export default function ListingDetailPage() {
           onTouchEnd={handleTouchEnd}
         >
           {listing.is_coffee_one_seller && (
-            <div className="absolute top-0 left-0 right-0 z-10 bg-coffee-blue text-white text-xs font-bold text-center py-1.5">
-              ☕ Продавець Coffee One
+            <div className="absolute top-0 left-0 right-0 z-10 bg-coffee-blue text-white text-xs font-bold text-center py-1.5 flex items-center justify-center gap-1">
+              <Icon name="coffeeCup" size={13} /> Продавець Coffee One
             </div>
           )}
           {photos.length > 0 ? (
@@ -189,13 +190,15 @@ export default function ListingDetailPage() {
               className="w-full h-full object-cover cursor-zoom-in"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-8xl">☕</div>
+            <div className="w-full h-full flex items-center justify-center">
+              <Icon name="coffeeCup" size={72} color="var(--color-coffee-blue-dark)" />
+            </div>
           )}
           <button
             onClick={() => toggleListingFavorite(listing.id)}
-            className="absolute top-3 right-3 z-20 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-lg"
+            className="absolute top-3 right-3 z-20 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center"
           >
-            <span className={liked ? 'text-coffee-red' : 'text-coffee-muted'}>{liked ? '♥' : '♡'}</span>
+            <Icon name="heart" size={17} filled={liked} color={liked ? 'var(--color-coffee-red)' : 'var(--color-coffee-muted)'} />
           </button>
           {photos.length > 1 && (
             <>
@@ -243,9 +246,9 @@ export default function ListingDetailPage() {
         <h1 className="text-lg font-bold text-coffee-dark mt-1">{listing.title}</h1>
 
         <div className="flex flex-wrap gap-3 mt-3 text-sm text-coffee-muted">
-          <span>📍 {listing.city}</span>
-          <span>🕐 {formatDate(listing.created_at)}</span>
-          <span>👁 {listing.views ?? 0} переглядів</span>
+          <span className="inline-flex items-center gap-1"><Icon name="pin" size={14} /> {listing.city}</span>
+          <span className="inline-flex items-center gap-1"><Icon name="clock" size={14} /> {formatDate(listing.created_at)}</span>
+          <span className="inline-flex items-center gap-1"><Icon name="eye" size={14} /> {listing.views ?? 0} переглядів</span>
         </div>
 
         <div className="grid grid-cols-2 gap-2.5 mt-5">
@@ -288,9 +291,9 @@ export default function ListingDetailPage() {
             <a
               href={`tel:${listing.profiles.phone}`}
               title="Зателефонувати"
-              className="w-11 h-11 rounded-full bg-coffee-blue text-white flex items-center justify-center text-lg shrink-0 hover:bg-coffee-blue-dark transition-colors"
+              className="w-11 h-11 rounded-full bg-coffee-blue text-white flex items-center justify-center shrink-0 hover:bg-coffee-blue-dark transition-colors"
             >
-              📞
+              <Icon name="phone" size={17} />
             </a>
           )}
         </div>
@@ -306,18 +309,20 @@ export default function ListingDetailPage() {
               }}
               className="w-full bg-coffee-dark text-white font-extrabold rounded-xl py-3.5 hover:opacity-90 transition-opacity"
             >
-              🚚 Купити з безпечною доставкою
+              <span className="inline-flex items-center justify-center gap-1.5"><Icon name="truck" size={16} /> Купити з безпечною доставкою</span>
               {listing.no_commission && (
-                <div className="text-coffee-green text-xs font-bold mt-0.5">💰 Без комісії — все включено у вартість</div>
+                <div className="text-coffee-green text-xs font-bold mt-0.5 inline-flex items-center gap-1 justify-center w-full">
+                  <Icon name="wallet" size={11} /> Без комісії — все включено у вартість
+                </div>
               )}
             </button>
             <div className="flex flex-col sm:flex-row gap-2.5">
               <button
                 onClick={() => goToChat(false)}
                 disabled={contacting}
-                className="flex-1 border-2 border-coffee-blue text-coffee-blue font-bold rounded-xl py-3 hover:bg-coffee-blue-light transition-colors disabled:opacity-50"
+                className="flex-1 border-2 border-coffee-blue text-coffee-blue font-bold rounded-xl py-3 hover:bg-coffee-blue-light transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
               >
-                💬 Написати
+                <Icon name="message" size={14} /> Написати
               </button>
               <button
                 onClick={() => {
@@ -325,9 +330,9 @@ export default function ListingDetailPage() {
                   setOfferOpen(true);
                 }}
                 disabled={contacting}
-                className="flex-1 border-2 border-coffee-blue text-coffee-blue font-bold rounded-xl py-3 hover:bg-coffee-blue-light transition-colors disabled:opacity-50"
+                className="flex-1 border-2 border-coffee-blue text-coffee-blue font-bold rounded-xl py-3 hover:bg-coffee-blue-light transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
               >
-                💰 Пропозиція
+                <Icon name="wallet" size={14} /> Пропозиція
               </button>
             </div>
           </div>
@@ -394,9 +399,10 @@ export default function ListingDetailPage() {
                   </div>
 
                   {listing.no_commission && (
-                    <div className="bg-coffee-green-light rounded-xl p-3 mt-3">
+                    <div className="bg-coffee-green-light rounded-xl p-3 mt-3 flex items-start gap-1.5">
+                      <Icon name="wallet" size={13} color="var(--color-coffee-green)" className="shrink-0 mt-0.5" />
                       <p className="text-coffee-green text-xs font-semibold leading-relaxed">
-                        💰 Без комісії — це товар від Coffee One, тож доставка нічого не коштує. Ціна, яку ви бачите, це все, що ви платите.
+                        Без комісії — це товар від Coffee One, тож доставка нічого не коштує. Ціна, яку ви бачите, це все, що ви платите.
                       </p>
                     </div>
                   )}
@@ -461,9 +467,9 @@ export default function ListingDetailPage() {
             <button
               onClick={() => setLightboxOpen(false)}
               aria-label="Закрити"
-              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xl"
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
             >
-              ✕
+              <Icon name="close" size={18} />
             </button>
             <img
               src={photos[activePhoto]}

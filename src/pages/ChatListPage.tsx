@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useConversations } from '../hooks/useConversations';
 import { useAuth } from '../contexts/AuthContext';
+import { Icon } from '../components/Icon';
 
 function formatTime(dateStr: string | null): string {
   if (!dateStr) return '';
@@ -23,7 +24,7 @@ export default function ChatListPage() {
         <div className="text-coffee-muted text-center py-16">Завантаження…</div>
       ) : conversations.length === 0 ? (
         <div className="bg-coffee-surface rounded-2xl p-14 text-center">
-          <div className="text-5xl mb-3">💬</div>
+          <div className="flex justify-center mb-3"><Icon name="message" size={44} color="var(--color-coffee-muted)" /></div>
           <div className="font-extrabold text-coffee-dark text-lg mb-1">Повідомлень поки немає</div>
           <div className="text-coffee-muted text-sm">Тут з'являться листування щодо ваших оголошень</div>
         </div>
@@ -35,8 +36,8 @@ export default function ChatListPage() {
             const photo = c.listings?.photos?.[0];
             return (
               <Link key={c.id} to={`/chats/${c.id}`} className="flex items-center gap-3 p-4 hover:bg-coffee-chip transition-colors">
-                <div className="w-13 h-13 w-[52px] h-[52px] rounded-xl bg-coffee-blue-light overflow-hidden shrink-0 flex items-center justify-center text-xl">
-                  {photo ? <img src={photo} className="w-full h-full object-cover" alt="" /> : '☕'}
+                <div className="w-13 h-13 w-[52px] h-[52px] rounded-xl bg-coffee-blue-light overflow-hidden shrink-0 flex items-center justify-center">
+                  {photo ? <img src={photo} className="w-full h-full object-cover" alt="" /> : <Icon name="coffeeCup" size={22} color="var(--color-coffee-blue-dark)" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">

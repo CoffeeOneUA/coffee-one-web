@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { StarRating } from '../components/StarRating';
+import { Icon } from '../components/Icon';
 
 interface Profile {
   full_name: string | null;
@@ -128,8 +129,8 @@ export default function ProfilePage() {
                 <div className="text-coffee-dark font-extrabold mt-1">{Number(l.price_uah).toLocaleString('uk-UA')} ₴</div>
                 {l.status !== 'sold' && (
                   <div className="flex gap-2 mt-3">
-                    <Link to={`/add-listing/${l.id}`} className="flex-1 text-center bg-coffee-blue-light text-coffee-blue-dark text-xs font-semibold rounded-lg py-2">
-                      ✏️ Редагувати
+                    <Link to={`/add-listing/${l.id}`} className="flex-1 text-center bg-coffee-blue-light text-coffee-blue-dark text-xs font-semibold rounded-lg py-2 inline-flex items-center justify-center gap-1">
+                      <Icon name="edit" size={12} /> Редагувати
                     </Link>
                     <button onClick={() => markSold(l.id, 'marketplace')} className="flex-1 bg-coffee-chip text-coffee-dark text-xs font-semibold rounded-lg py-2">
                       Продано на маркетплейсі
